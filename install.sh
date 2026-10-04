@@ -24,19 +24,18 @@ fi
 BREW_PREFIX=$("$BREW" --prefix)
 PATH="$BREW_PREFIX/bin:$PATH"
 export PATH
-"$BREW" install gh nvm starship
-"$BREW" install --cask ghostty
-mkdir -p "$HOME/.nvm"
+"$BREW" install gh
+
+if ! gh auth status >/dev/null 2>&1; then
+  echo "GitHub CLI is not authenticated; starting login."
+  gh auth login
+fi
+github_token=$(gh auth token)
 
 repo_ref=${DOTFILES_REF:-main}
 if [ -f "$0" ]; then
   repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 else
-  if ! gh auth status >/dev/null 2>&1; then
-    echo "GitHub CLI is not authenticated; starting login."
-    gh auth login
-  fi
-  github_token=$(gh auth token)
   download() {
     curl -fsSL -H "Authorization: Bearer $github_token" "$1"
   }
@@ -56,6 +55,10 @@ if [ ! -f "$repo_dir/.zshrc" ] || [ ! -f "$repo_dir/starship.toml" ] || [ ! -f "
   echo "Dotfiles could not be downloaded." >&2
   exit 1
 fi
+
+"$BREW" install nvm starship
+"$BREW" install --cask ghostty
+mkdir -p "$HOME/.nvm"
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   echo "Oh My Zsh is not installed; installing it now."
