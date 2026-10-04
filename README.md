@@ -4,15 +4,14 @@ Personal macOS Apple Silicon configuration files for zsh, Starship, nvm, and Gho
 
 ## Install
 
-On a fresh M1/M2/M3 Mac:
+On a fresh M1/M2/M3 Mac, download and run the installer with a GitHub token that can read this private repository:
 
 ```sh
-git clone https://github.com/ppconde/dotfiles.git
-cd dotfiles
-./install.sh
+export GITHUB_TOKEN=your_github_token
+curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" https://raw.githubusercontent.com/ppconde/dotfiles/main/install.sh | bash
 ```
 
-The installer:
+The installer downloads the current configs into `~/.dotfiles`, then:
 
 - installs Homebrew if needed, then installs nvm, Starship, and Ghostty;
 - installs Oh My Zsh if it is not already present; and
@@ -20,4 +19,4 @@ The installer:
 
 Existing regular config files are moved to a timestamped `.backup.*` file before they are replaced. Restart the terminal after installation, or run `exec zsh`.
 
-The installer intentionally targets macOS on Apple Silicon, where Homebrew uses `/opt/homebrew`.
+The installer intentionally targets macOS on Apple Silicon, where Homebrew uses `/opt/homebrew`. To run it from a local checkout instead, use `./install.sh`.
