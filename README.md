@@ -4,19 +4,19 @@ Personal macOS Apple Silicon configuration files for zsh, Starship, nvm, and Gho
 
 ## Install
 
-On a fresh M1/M2/M3 Mac, authenticate GitHub CLI, then download and run the installer:
+On a fresh M1/M2/M3 Mac, download and run the installer:
 
 ```sh
-brew install gh
-gh auth login
-curl -fsSL -H "Authorization: Bearer $(gh auth token)" https://raw.githubusercontent.com/ppconde/dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ppconde/dotfiles/main/install.sh | bash
 ```
 
-The installer installs GitHub CLI if needed, obtains its token through `gh auth`, and downloads the current configs into `~/.dotfiles`, then:
+The installer installs Homebrew if needed, then:
 
-- installs Homebrew if needed, then installs nvm, Starship, and Ghostty;
-- installs Oh My Zsh if it is not already present; and
-- symlinks the tracked configs into their expected locations.
+1. installs GitHub CLI and runs `gh auth login`;
+2. downloads the current configs into `~/.dotfiles`;
+3. installs nvm, Starship, and Ghostty;
+4. installs Oh My Zsh if it is not already present; and
+5. symlinks the tracked configs into their expected locations.
 
 Existing regular config files are moved to a timestamped `.backup.*` file before they are replaced. Restart the terminal after installation, or run `exec zsh`.
 
