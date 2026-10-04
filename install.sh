@@ -6,34 +6,6 @@ if [ "$(uname -s)" != "Darwin" ] || [ "$(uname -m)" != "arm64" ]; then
   exit 1
 fi
 
-repo_ref=${DOTFILES_REF:-main}
-download() {
-  if [ -n "${GITHUB_TOKEN:-}" ]; then
-    curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "$1"
-  else
-    curl -fsSL "$1"
-  fi
-}
-
-if [ -f "$0" ]; then
-  repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-else
-  download_dir=$(mktemp -d)
-  trap 'rm -rf "$download_dir"' EXIT
-  echo "Downloading dotfiles..."
-  download "https://github.com/ppconde/dotfiles/archive/refs/heads/$repo_ref.tar.gz" \
-    | tar -xzf - -C "$download_dir"
-  downloaded_dir="$download_dir/dotfiles-$repo_ref"
-  repo_dir="$HOME/.dotfiles"
-  mkdir -p "$repo_dir"
-  cp "$downloaded_dir/.zshrc" "$downloaded_dir/starship.toml" "$downloaded_dir/config.ghostty" "$repo_dir/"
-fi
-
-if [ ! -f "$repo_dir/.zshrc" ] || [ ! -f "$repo_dir/starship.toml" ] || [ ! -f "$repo_dir/config.ghostty" ]; then
-  echo "Dotfiles could not be downloaded." >&2
-  exit 1
-fi
-
 if [ -x /opt/homebrew/bin/brew ]; then
   BREW=/opt/homebrew/bin/brew
 elif command -v brew >/dev/null 2>&1; then
@@ -49,9 +21,41 @@ if [ ! -x "$BREW" ]; then
   exit 1
 fi
 
-"$BREW" install nvm starship
+BREW_PREFIX=$("$BREW" --prefix)
+PATH="$BREW_PREFIX/bin:$PATH"
+export PATH
+"$BREW" install gh nvm starship
 "$BREW" install --cask ghostty
 mkdir -p "$HOME/.nvm"
+
+repo_ref=${DOTFILES_REF:-main}
+if [ -f "$0" ]; then
+  repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+else
+  if ! gh auth status >/dev/null 2>&1; then
+    echo "GitHub CLI is not authenticated; starting login."
+    gh auth login
+  fi
+  github_token=$(gh auth token)
+  download() {
+    curl -fsSL -H "Authorization: Bearer $github_token" "$1"
+  }
+
+  download_dir=$(mktemp -d)
+  trap 'rm -rf "$download_dir"' EXIT
+  echo "Downloading dotfiles..."
+  download "https://github.com/ppconde/dotfiles/archive/refs/heads/$repo_ref.tar.gz" \
+    | tar -xzf - -C "$download_dir"
+  downloaded_dir="$download_dir/dotfiles-$repo_ref"
+  repo_dir="$HOME/.dotfiles"
+  mkdir -p "$repo_dir"
+  cp "$downloaded_dir/.zshrc" "$downloaded_dir/starship.toml" "$downloaded_dir/config.ghostty" "$repo_dir/"
+fi
+
+if [ ! -f "$repo_dir/.zshrc" ] || [ ! -f "$repo_dir/starship.toml" ] || [ ! -f "$repo_dir/config.ghostty" ]; then
+  echo "Dotfiles could not be downloaded." >&2
+  exit 1
+fi
 
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   echo "Oh My Zsh is not installed; installing it now."
